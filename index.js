@@ -1,8 +1,12 @@
 import express from 'express';
 import { connectDB } from './Config/DBconnection.js';
+import userRoutes from './Routes/userRoutes.js'
 
 const app = express();
 const port = 3000;
+
+//Route establishment
+app.use('/api',userRoutes);
 
 //middleware
 app.use(express.json());
