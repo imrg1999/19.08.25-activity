@@ -43,7 +43,6 @@ export const createNewUser = async(req,res) => {
             password: hashPassword
         });
 
-        
             res.status(201).json({
                 success: true,
                 message: "new user created",
