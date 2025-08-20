@@ -1,7 +1,7 @@
 import { userModel } from "../Model/userModel.js";
 import { validationSchema } from "../Validation/zodSchema.js";
 import hashing from '../Validation/passwordHashing.js';
-import { ZodError } from "zod";
+import { success, ZodError } from "zod";
 
 export const showAllUsers = async(req,res) => {
     try{
@@ -62,4 +62,29 @@ export const createNewUser = async(req,res) => {
         }); 
         }
     }
+}
+
+export const findUserById = async(req,res) => {
+    try {
+        const {id} = req.params;
+    const userId = await userModel.findById(id);
+
+    if(!userId) {
+        res.status(404).json({
+            success: false,
+            message: "Id does not exist"
+        })
+    } else {
+        res.status(200).json({
+            success: true,
+            message: userId
+        })
+    }
+    } catch(error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        })
+    }
+    
 }
