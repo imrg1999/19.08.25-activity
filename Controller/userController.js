@@ -1,4 +1,7 @@
 import { userModel } from "../Model/userModel.js";
+import { validationSchema } from "../Validation/zodSchema.js";
+import hashing from '../Validation/passwordHashing.js';
+import { ZodError } from "zod";
 
 export const showAllUsers = async(req,res) => {
     try{
@@ -11,7 +14,7 @@ export const showAllUsers = async(req,res) => {
         } else {
             res.status(200).json({
                 success: true,
-                user: allUsers
+                users: allUsers
             });
         }
     } catch(error) {
@@ -19,5 +22,36 @@ export const showAllUsers = async(req,res) => {
             success: false,
             message: "Internal Server Error"
         });
+    }
+}
+
+export const createNewUser = async(req,res) => {
+    try{
+        const validUser = validationSchema.parse(req.body);
+        const hashPassword = await hashing(validUser.password);
+
+        const newUser = await userModel.create({
+            ...validUser,
+            password: hashPassword
+        });
+
+            res.status(201).json({
+                success: true,
+                message: "new user created",
+                user: newUser
+            })
+    }catch(error) {
+        if(error instanceof ZodError) {
+            res.status(400).json({
+                success: false,
+                message: "Request Error",
+                error: error.issues
+            })
+        } else {
+           res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        }); 
+        }
     }
 }
