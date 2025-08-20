@@ -27,14 +27,23 @@ export const showAllUsers = async(req,res) => {
 
 export const createNewUser = async(req,res) => {
     try{
-        const validUser = validationSchema.parse(req.body);
+        const validUser = await validationSchema.parseAsync(req.body);
         const hashPassword = await hashing(validUser.password);
 
+        const existingUser = await userModel.findOne({email: validUser.email}) ; 
+        //findOne expects object
+        if(existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "Email Id already exists"
+            })
+        } 
         const newUser = await userModel.create({
             ...validUser,
             password: hashPassword
         });
 
+        
             res.status(201).json({
                 success: true,
                 message: "new user created",
