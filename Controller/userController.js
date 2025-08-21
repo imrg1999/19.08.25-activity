@@ -1,7 +1,7 @@
 import { userModel } from "../Model/userModel.js";
 import { validationSchema } from "../Validation/zodSchema.js";
 import hashing from '../Validation/passwordHashing.js';
-import { success, ZodError } from "zod";
+import { ZodError } from "zod";
 
 export const showAllUsers = async(req,res) => {
     try{
@@ -77,7 +77,7 @@ export const findUserById = async(req,res) => {
     } else {
         res.status(200).json({
             success: true,
-            message: userId
+            user: userId
         })
     }
     } catch(error) {
@@ -87,4 +87,40 @@ export const findUserById = async(req,res) => {
         })
     }
     
+}
+
+export const updateUsers = async(req,res) => {
+    try{
+        const {id} = req.params;
+        const userInfo = await validationSchema.parseAsync(req.body);
+
+         
+    if(userInfo.password) {
+        userInfo.password = await hashing(userInfo.password);
+    }
+
+        const updateInfo = await userModel.findByIdAndUpdate(id, {
+            ...userInfo,
+        }, {new: true}
+    );
+   
+
+       if(!updateInfo) {
+        return res.status(404).json({
+            success: false,
+            message: "user Id does not exist"
+        })
+       } else {
+        res.status(200).json({
+            success: true,
+            user: updateInfo
+        })
+       }
+    
+    } catch(error) {
+        res.status(500).json({
+            success: false,
+            message: "Info hasn't been updated"
+        })
+    }
 }
