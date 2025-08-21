@@ -96,7 +96,7 @@ export const updateUsers = async(req,res) => {
 
          
     if(userInfo.password) {
-        newPassword = await hashing(userInfo.password);
+        userInfo.password = await hashing(userInfo.password);
     }
 
         const updateInfo = await userModel.findByIdAndUpdate(id, {
@@ -130,6 +130,34 @@ export const updateUsers = async(req,res) => {
             message: "Info hasn't been updated"
         })
     }
+       
+    }
+}
+
+export const deleteUser = async(req,res) => {
+    try{
+        const {id} = req.params;
+
+        const deleteInfo = await userModel.findByIdAndDelete(id);
+
+        if(!deleteInfo) {
+           return res.status(404).json({
+            success: false,
+            message: "Info hasn't been deleted"
+        })
+        } else {
+             res.status(200).json({
+            success: true,
+            user: deleteInfo,
+            message: "Info has been deleted successfully"
+        })
+        }
+
+    } catch(error) {
+         res.status(500).json({
+            success: false,
+            message: "Info hasn't been deleted"
+        })
        
     }
 }
