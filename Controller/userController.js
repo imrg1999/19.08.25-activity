@@ -96,7 +96,7 @@ export const updateUsers = async(req,res) => {
 
          
     if(userInfo.password) {
-        userInfo.password = await hashing(userInfo.password);
+        newPassword = await hashing(userInfo.password);
     }
 
         const updateInfo = await userModel.findByIdAndUpdate(id, {
@@ -118,9 +118,18 @@ export const updateUsers = async(req,res) => {
        }
     
     } catch(error) {
-        res.status(500).json({
+         if (error instanceof ZodError) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid data",
+            error: error.issues
+        });
+    } else {
+         res.status(500).json({
             success: false,
             message: "Info hasn't been updated"
         })
+    }
+       
     }
 }
