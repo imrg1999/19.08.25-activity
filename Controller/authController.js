@@ -2,6 +2,8 @@ import { userModel } from "../Model/userModel.js";
 import { validationSchema } from "../Validation/zodSchema.js";
 import { ZodError } from "zod";
 import hashing from "../Validation/passwordHashing.js";
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 
 export const registerUser = async(req,res) => {
@@ -32,13 +34,64 @@ export const registerUser = async(req,res) => {
                 message: "User could not be created"
             })
         } else {
-            res.status(201).json({
-                success: true,
-                user: registerNewUser
-            })
+           res.status(201).json({
+              success: true,
+              message: "Registered Successfully"
+           });
         }
 
     } catch(error) {
+        if(error instanceof ZodError) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Request",
+                error: error.issues
+            })
+        } else {
+            return res.status(500).json({
+                success: false,
+                message: "Internal server Error"
+            })
+        }
+    }
+}
+
+export const loginUser = async(req,res) => {
+    try{
+        const {email, password} = req.body;
+        const registeredUser = await userModel.findOne({email});
+
+        if(!registeredUser){
+            return res.status(400).json({
+                success: false,
+                message: "Mail Id isn't valid"
+            })
+        } 
+
+        const isValid = await bcrypt.compare(password, registeredUser.password);
+        if(!isValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid Password"
+            })
+        }
+
+        const token = jwt.sign(
+            {
+               email: registeredUser.email,
+               id: registeredUser._id
+            },
+            process.env.SECRET_KEY,
+            {expiresIn: "1h"}
+        );
+
+            res.status(200).json({
+            success: true,
+            message: "Login successful",
+            token: token
+        });
+
+    }catch(error) {
         if(error instanceof ZodError) {
             return res.status(400).json({
                 success: false,
