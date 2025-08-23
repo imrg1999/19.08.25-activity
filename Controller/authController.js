@@ -62,9 +62,9 @@ export const loginUser = async(req,res) => {
         const registeredUser = await userModel.findOne({email});
 
         if(!registeredUser){
-            return res.status(400).json({
+            return res.status(401).json({
                 success: false,
-                message: "Mail Id isn't valid"
+                message: "Mail Id or Password isn't valid"
             })
         } 
 
@@ -105,4 +105,33 @@ export const loginUser = async(req,res) => {
             })
         }
     }
+}
+
+export const userProfile = async(req,res) => {
+   try{
+    const profileData = await userModel.findById(req.user.id).select("-password");
+
+    if(!profileData) {
+         return res.status(404).json({
+                success: false,
+                message: "User Not Found"
+            })
+    } else {
+         res.status(200).json({
+                success: true,
+                data: {
+                    _id: profileData._id,
+                    name: profileData.name,
+                    email: profileData.email,
+                    age: profileData.age,
+                    contact: profileData.contact
+                }
+            })
+    }
+   } catch(error) {
+     return res.status(500).json({
+                success: false,
+                message: "Internal server Error"
+            });
+   }
 }
